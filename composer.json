@@ -1,0 +1,18 @@
+{
+    "name": "suyash/google-sheets-crud",
+    "description": "A utility package to ease the usage of Google Services API provided by Google for working with Google Sheets",
+    "type": "library",
+    "require": {
+        "google/apiclient": "^2.12"
+    },
+    "autoload": {
+        "psr-4": {
+            "Suyash\\GoogleSheetsCrud\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Suyash Saxena"
+        }
+    ]
+}
