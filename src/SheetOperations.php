@@ -27,14 +27,6 @@ class SheetOperations
     }
 
     /**
-     * @return string
-     */
-    public function getSpreadsheetId(): string
-    {
-        return $this->spreadsheetId;
-    }
-
-    /**
      * Inserts single or multiple rows at a time without the regard of number of values provided in each row. Each cell in a row will be inserted sequentially.
      *
      * @param string $range Range in the Google Sheet to be considered. Name of the work sheet, e.g., Sheet1, means whole sheet will be considered and hence new rows will be inserted just after last entry in the sheet.
