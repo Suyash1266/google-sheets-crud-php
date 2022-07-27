@@ -44,7 +44,8 @@ class SheetOperations
             'values' => $values
         ]);
         $params = [
-            'valueInputOption' => $insertAs
+            'valueInputOption' => $insertAs,
+            'insertDataOption' => 'INSERT_ROWS'
         ];
         $result = $this->service->spreadsheets_values->append($this->spreadsheetId, $range, $body, $params);
         return $result->getUpdates()->getUpdatedRows();
@@ -69,5 +70,50 @@ class SheetOperations
             unset($columns[$i]);
         }
         return $columns;
+    }
+
+    /**
+     * Inserts values into the spreadsheet at specified columns.
+     *
+     * @param string $range - The A1 notation or R1C1 notation of the range to retrieve values from. Formats: Sheet1!A1:B2 | Sheet1!R1C1:R2C2 | Sheet1 (for entire sheet)
+     * @param array $values - 2D array of values with first row being the column names.
+     * @param string $insertAs - How the input data should be interpreted. Available options are:
+     * - RAW: The values the user has entered will not be parsed and will be stored as-is
+     * - USER_ENTERED: The values will be parsed as if the user typed them into the UI. Numbers will stay as numbers, but strings may be converted to number, dates, etc. following the same rules that are applied when entering text into a cell via the Google Sheets UI.
+     * Default is RAW.
+     *
+     * @return int - Number of rows updated after the operation.
+     */
+    public function insertIntoColumns(string $range, array $values, string $insertAs = 'RAW'): int
+    {
+        $allColumns = $this->getColumns($range);
+        $allColumnsCount = count($allColumns);
+        $requiredColumns = $values[0];
+        $requiredColumnsCount = count($requiredColumns);
+        $requiredColumnsPositions = [];
+        $rowTemplate = [];
+        for ($i = 0; $i < $requiredColumnsCount; $i++) {
+            $requiredColumnsPositions[$i] = ord($allColumns[$requiredColumns[$i]]) - 65;
+        }
+        for ($i = 0; $i < $allColumnsCount; $i++) {
+            if (in_array($i, $requiredColumnsPositions)) {
+                $rowTemplate[$i] = true;
+            } else {
+                $rowTemplate[$i] = false;
+            }
+        }
+        $values = array_slice($values, 1);
+        $valuesRestructured = [];
+        for ($i = 0; $i < count($values); $i++) {
+            $columnIndex = 0;
+            for ($j = 0; $j < $allColumnsCount; $j++) {
+                if ($rowTemplate[$j]) {
+                    $valuesRestructured[$i][$j] = $values[$i][$columnIndex++];
+                } else {
+                    $valuesRestructured[$i][$j] = '';
+                }
+            }
+        }
+        return $this->insertInto($range, $valuesRestructured, $insertAs);
     }
 }
