@@ -29,7 +29,7 @@ class SheetOperations
     /**
      * Inserts single or multiple rows at a time without the regard of number of values provided in each row. Each cell in a row will be inserted sequentially.
      *
-     * @param string $range Range in the Google Sheet to be considered. Name of the work sheet, e.g., Sheet1, means whole sheet will be considered and hence new rows will be inserted just after last entry in the sheet.
+     * @param string $range The A1 notation or R1C1 notation of the range to retrieve values from. Formats: Sheet1!A1:B2 | Sheet1!R1C1:R2C2 | Sheet1 (for entire sheet)
      * @param array $values 2D array of values to be inserted with each outer element corresponding to a row and each inner element corresponding to the value to be inserted.
      * @param string $insertAs How the input data should be interpreted. Available options are:
      * - RAW: The values the user has entered will not be parsed and will be stored as-is
@@ -48,5 +48,26 @@ class SheetOperations
         ];
         $result = $this->service->spreadsheets_values->append($this->spreadsheetId, $range, $body, $params);
         return $result->getUpdates()->getUpdatedRows();
+    }
+
+    /**
+     * Returns the column names (first row) of the sheet along with the column index (in A1 notation).
+     *
+     * @param string $range The A1 notation or R1C1 notation of the range to retrieve values from. Formats: Sheet1!A1:B2 | Sheet1!R1C1:R2C2 | Sheet1 (for entire sheet)
+     * @return array Associative array of column names and their index in A1 notation.
+     */
+    public function getColumns(string $range): array
+    {
+        $result = $this->service->spreadsheets_values->get($this->spreadsheetId, $range);
+        $columns = $result->getValues()[0];
+        $initialCount = count($columns);
+        for ($i = 0; $i < $initialCount; $i++) {
+            if ($columns[$i] !== '') {
+                $column = chr(65 + $i);
+                $columns[$columns[$i]] = $column;
+            }
+            unset($columns[$i]);
+        }
+        return $columns;
     }
 }
